@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学生算术大冒险 🎮</title>
+    <!-- 引入 Tailwind CSS 美化界面 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入可爱圆润的字体与中文支持 -->
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+SC:wght@500;700;900&display=swap" rel="stylesheet">
+    <!-- 引入通关彩带特效库 -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Fredoka', 'Noto Sans SC', sans-serif;
+            background: linear-gradient(135deg, #fef08a 0%, #fed7aa 50%, #bae6fd 100%);
+            min-height: 100vh;
+            user-select: none;
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+        .bounce-hover:hover {
+            transform: translateY(-3px);
+            transition: transform 0.2s ease;
+        }
+        .bounce-hover:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-xl bg-white/90 backdrop-blur-md rounded-3xl card-shadow p-6 sm:p-8 border-4 border-yellow-300 relative overflow-hidden">
+        
+        <!-- 动态音效控制（无外部音频文件，使用 Web Audio API 合成萌趣音效） -->
+
+        <!-- ================= 1. 主菜单界面 ================= -->
+        <div id="screen-home" class="space-y-6">
+            <div class="text-center space-y-2">
+                <span class="text-5xl">🦁 🚀 🦄</span>
+                <h1 class="text-3xl sm:text-4xl font-black text-amber-600 drop-shadow-sm">算术大冒险</h1>
+                <p class="text-gray-500 font-medium text-sm">快乐学数学，每天赢金币换零花钱！</p>
+            </div>
+
+            <!-- 资产状态面板 -->
+            <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-4 flex justify-around items-center text-center">
+                <div>
+                    <div class="text-xs text-amber-700 font-bold">我的金币</div>
+                    <div class="text-2xl font-black text-amber-500 flex items-center justify-center gap-1">
+                        🪙 <span id="txt-coins">0</span>
+                    </div>
+                </div>
+                <div class="h-10 w-0.5 bg-amber-200"></div>
+                <div>
+                    <div class="text-xs text-pink-600 font-bold">零花钱兑换券</div>
+                    <div class="text-2xl font-black text-pink-500 flex items-center justify-center gap-1">
+                        🎫 <span id="txt-vouchers">0</span> 张
+                    </div>
+                </div>
+            </div>
+
+            <!-- 每日奖励提示 -->
+            <div id="daily-status-banner" class="text-center text-xs font-bold text-emerald-600 bg-emerald-50 py-2 rounded-xl border border-emerald-200">
+                ✨ 今日首次通关可获得金币奖励！
+            </div>
+
+            <!-- 难度选择按钮组 -->
+            <div class="space-y-3">
+                <h2 class="text-sm font-bold text-gray-600 ml-1">请选择挑战难度：</h2>
+                
+                <button onclick="startGame('easy')" class="w-full bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white font-black py-4 px-6 rounded-2xl shadow-lg bounce-hover flex justify-between items-center text-lg">
+                    <span class="flex items-center gap-2">🌱 简单关卡</span>
+                    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">30题 · 奖 10金币</span>
+                </button>
+
+                <button onclick="startGame('medium')" class="w-full bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white font-black py-4 px-6 rounded-2xl shadow-lg bounce-hover flex justify-between items-center text-lg">
+                    <span class="flex items-center gap-2">⭐ 中等关卡</span>
+                    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">60题 · 奖 45金币</span>
+                </button>
+
+                <button onclick="startGame('hard')" class="w-full bg-gradient-to-r from-purple-400 to-indigo-500 hover:from-purple-500 hover:to-indigo-600 text-white font-black py-4 px-6 rounded-2xl shadow-lg bounce-hover flex justify-between items-center text-lg">
+                    <span class="flex items-center gap-2">🔥 困难关卡</span>
+                    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">100题 · 奖 100金币</span>
+</button>
+            </div>
+
+            <!-- 商店入口 -->
+            <button onclick="openShop()" class="w-full bg-gradient-to-r from-pink-400 to-rose-400 hover:from-pink-500 hover:to-rose-500 text-white font-black py-3.5 px-6 rounded-2xl shadow-md bounce-hover flex items-center justify-center gap-2 text-base">
+                🛒 进入零花钱商店 (100金币 = 1元兑换券)
+            </button>
+        </div>
+
+
+        <!-- ================= 2. 游戏答题界面 ================= -->
+        <div id="screen-game" class="hidden space-y-6">
+            <!-- 顶栏状态 -->
+            <div class="flex justify-between items-center">
+                <button onclick="quitGame()" class="text-sm font-bold text-gray-400 hover:text-gray-600 bg-gray-100 px-3 py-1.5 rounded-xl">
+                    ⬅ 退出
+                </button>
+                <div id="game-progress-text" class="font-black text-amber-600 text-lg">第 1 / 30 题</div>
+                <div class="text-sm font-bold text-rose-500 bg-rose-50 px-3 py-1.5 rounded-xl">
+                    ❤️ 答对: <span id="game-correct-count">0</span>
+                </div>
+            </div>
+
+            <!-- 进度条 -->
+            <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden">
+                <div id="progress-bar" class="bg-amber-400 h-full transition-all duration-300" style="width: 0%"></div>
+            </div>
+
+            <!-- 题目卡片 -->
+            <div class="bg-gradient-to-br from-amber-50 to-orange-50 border-4 border-amber-200 rounded-3xl p-8 text-center space-y-4">
+                <div id="q-expression" class="text-4xl sm:text-5xl font-black text-gray-700 tracking-wider">
+                    12 + 8 = ?
+                </div>
+                <div id="feedback-msg" class="text-sm font-bold h-6 text-emerald-600 transition-all"></div>
+            </div>
+
+            <!-- 输入区域 -->
+            <div class="space-y-4">
+                <input type="number" id="user-answer" autofocus placeholder="请输入答案数字..." 
+                    class="w-full text-center text-3xl font-black py-4 rounded-2xl border-4 border-amber-300 focus:border-amber-500 focus:outline-none bg-amber-50/50 text-gray-700 shadow-inner"
+                    onkeydown="if(event.key === 'Enter') submitAnswer()">
+                
+                <button onclick="submitAnswer()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-black py-4 rounded-2xl shadow-lg text-xl bounce-hover">
+                    提交答案 🚀
+                </button>
+            </div>
+        </div>
+
+
+        <!-- ================= 3. 结算界面 ================= -->
+        <div id="screen-result" class="hidden text-center space-y-6 py-4">
+            <div class="text-6xl" id="result-emoji">🎉</div>
+            <h2 id="result-title" class="text-3xl font-black text-gray-800">挑战成功！</h2>
+            
+            <div class="bg-amber-50 border-2 border-amber-200 rounded-2xl p-6 space-y-3 max-w-sm mx-auto">
+                <div class="flex justify-between text-gray-600 font-bold">
+                    <span>总题数：</span>
+                    <span id="res-total">30</span>
+                </div>
+                <div class="flex justify-between text-gray-600 font-bold">
+                    <span>答对题数：</span>
+                    <span id="res-correct" class="text-emerald-600">28</span>
+                </div>
+                <div class="flex justify-between text-gray-600 font-bold">
+                    <span>正确率：</span>
+                    <span id="res-rate" class="text-amber-600">93.3%</span>
+                </div>
+                <div class="border-t border-amber-200 pt-3 flex justify-between items-center">
+                    <span class="font-bold text-gray-700">获得金币：</span>
+                    <span id="res-reward" class="text-2xl font-black text-amber-500">+10 🪙</span>
+                </div>
+            </div>
+
+            <p id="res-note" class="text-xs font-bold text-gray-400"></p>
+
+            <button onclick="goHome()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-4 rounded-2xl shadow-lg text-lg bounce-hover">
+                返回主菜单 🏠
+            </button>
+        </div>
+
+
+        <!-- ================= 4. 商店界面 ================= -->
+        <div id="screen-shop" class="hidden space-y-6">
+            <div class="flex justify-between items-center">
+                <button onclick="goHome()" class="text-sm font-bold text-gray-400 hover:text-gray-600 bg-gray-100 px-3 py-1.5 rounded-xl">
+                    ⬅ 返回
+                </button>
+<h2 class="text-xl font-black text-pink-500">🛒 零花钱商店</h2>
+                <div class="w-12"></div>
+            </div>
+
+            <div class="bg-pink-50 border-2 border-pink-200 rounded-2xl p-4 text-center">
+                <div class="text-xs text-pink-600 font-bold">当前拥有金币</div>
+                <div class="text-3xl font-black text-amber-500 mt-1">🪙 <span id="shop-coins">0</span></div>
+            </div>
+
+            <!-- 商品卡片 -->
+            <div class="bg-white border-2 border-gray-100 rounded-2xl p-5 flex items-center justify-between shadow-sm">
+                <div class="space-y-1">
+                    <div class="font-black text-gray-800 text-lg">🎫 1元人民币兑换券</div>
+                    <div class="text-xs text-gray-400 font-medium">使用100金币兑换1张（可积攒找爸爸妈妈兑现）</div>
+                </div>
+                <button onclick="buyVoucher()" class="bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black px-5 py-3 rounded-xl shadow-md bounce-hover text-sm">
+                    兑换 (100🪙)
+                </button>
+            </div>
+
+            <div class="text-center text-xs text-gray-400 font-medium pt-4">
+                💡 提示：合理安排游戏时间，认真答题赚取零花钱哦！
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= 核心游戏逻辑 JavaScript ================= -->
+    <script>
+        // 本地数据存储与初始化
+        let userData = JSON.parse(localStorage.getItem('math_game_data')) || {
+            coins: 0,
+            vouchers: 0,
+            lastRewardDate: ''
+        };
+
+        function saveUserData() {
+            localStorage.setItem('math_game_data', JSON.stringify(userData));
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('txt-coins').innerText = userData.coins;
+            document.getElementById('txt-vouchers').innerText = userData.vouchers;
+            document.getElementById('shop-coins').innerText = userData.coins;
+
+            // 检查今日是否已领奖
+            const today = new Date().toDateString();
+            const banner = document.getElementById('daily-status-banner');
+            if (userData.lastRewardDate === today) {
+                banner.innerText = "ℹ️ 今日金币奖励已领取，明天通关可再次获得！";
+                banner.className = "text-center text-xs font-bold text-gray-500 bg-gray-100 py-2 rounded-xl border border-gray-200";
+            } else {
+                banner.innerText = "✨ 今日首次通关可获得金币奖励！";
+                banner.className = "text-center text-xs font-bold text-emerald-600 bg-emerald-50 py-2 rounded-xl border border-emerald-200";
+            }
+        }
+        updateUI();
+
+        // 页面切换控制
+        function showScreen(screenId) {
+            ['screen-home', 'screen-game', 'screen-result', 'screen-shop'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+        }
+
+        function goHome() {
+            updateUI();
+            showScreen('screen-home');
+        }
+
+        function openShop() {
+            updateUI();
+            showScreen('screen-shop');
+        }
+
+        // 游戏运行时状态变量
+        let currentGame = {
+            difficulty: 'easy',
+            totalQ: 30,
+            rewardCoins: 10,
+            currentIndex: 0,
+            correctCount: 0,
+            currentAns: 0,
+            currentExprStr: ''
+        };
+
+        const configMap = {
+            easy: { name: '简单', count: 30, reward: 10 },
+            medium: { name: '中等', count: 60, reward: 45 },
+            hard: { name: '困难', count: 100, reward: 100 }
+        };
+
+        function startGame(diff) {
+            currentGame.difficulty = diff;
+            currentGame.totalQ = configMap[diff].count;
+            currentGame.rewardCoins = configMap[diff].reward;
+            currentGame.currentIndex = 0;
+            currentGame.correctCount = 0;
+
+            showScreen('screen-game');
+            nextQuestion();
+        }
+
+        function quitGame() {
+            if (confirm("确定要中途退出吗？当前的进度将不会保存哦！")) {
+                goHome();
+            }
+        }
+
+        // 随机生成100以内的正整数算术题
+        function generateQuestion(difficulty) {
+            const multiProb = { easy: 0.1, medium: 0.3, hard: 0.6 };
+            const isMulti = Math.random() < multiProb[difficulty];
+
+            let weights = difficulty === 'easy' ? [40, 40, 10, 10] :
+                          difficulty === 'medium' ? [25, 25, 25, 25] : [10, 10, 40, 40];
+            const ops= ['+', '-', '*', '/'];
+
+            while (true) {
+                let expr = "";
+                if (!isMulti) {
+                    let op = weightedRandom(ops, weights);
+                    if (op === '+') {
+                        let a = Math.floor(Math.random() * 98) + 1;
+                        let b = Math.floor(Math.random() * (100 - a)) + 1;
+                        expr = `${a} + ${b}`;
+                    } else if (op === '-') {
+                        let a = Math.floor(Math.random() * 99) + 2;
+                        let b = Math.floor(Math.random() * (a - 1)) + 1;
+                        expr = `${a} - ${b}`;
+                    } else if (op === '*') {
+                        let a = Math.floor(Math.random() * 50) + 1;
+                        let maxB = Math.floor(100 / a);
+                        if (maxB < 1) continue;
+                        let b = Math.floor(Math.random() * maxB) + 1;
+                        expr = `${a} * ${b}`;
+                    } else if (op === '/') {
+                        let b = Math.floor(Math.random() * 50) + 1;
+                        let maxFactor = Math.floor(100 / b);
+                        if (maxFactor < 1) continue;
+                        let factor = Math.floor(Math.random() * maxFactor) + 1;
+                        let a = b * factor;
+                        expr = `${a} / ${b}`;
+                    }
+                } else {
+                    let op1 = weightedRandom(ops, weights);
+                    let op2 = weightedRandom(ops, weights);
+                    let a = Math.floor(Math.random() * 40) + 1;
+                    let b = Math.floor(Math.random() * 40) + 1;
+                    let c = Math.floor(Math.random() * 40) + 1;
+                    expr = `${a} ${op1} ${b} ${op2} ${c}`;
+                }
+
+                try {
+                    let val = eval(expr);
+                    if (Number.isInteger(val) && val >= 1 && val <= 100) {
+                        let displayExpr = expr.replace(/\*/g, '×').replace(/\//g, '÷');
+                        return { expr: displayExpr, ans: val };
+                    }
+                } catch (e) {
+                    continue;
+                }
+            }
+        }
+
+        function weightedRandom(items, weights) {
+            let totalWeight = weights.reduce((a, b) => a + b, 0);
+            let randomNum = Math.random() * totalWeight;
+            for (let i = 0; i < items.length; i++) {
+                if (randomNum < weights[i]) return items[i];
+                randomNum -= weights[i];
+            }
+            return items[0];
+        }
+
+        function nextQuestion() {
+            if (currentGame.currentIndex >= currentGame.totalQ) {
+                endGame();
+                return;
+            }
+
+            currentGame.currentIndex++;
+            let qData = generateQuestion(currentGame.difficulty);
+            currentGame.currentAns = qData.ans;
+            currentGame.currentExprStr = qData.expr;
+
+            // 更新UI
+            document.getElementById('game-progress-text').innerText = `第 ${currentGame.currentIndex} / ${currentGame.totalQ} 题`;
+            document.getElementById('q-expression').innerText = `${qData.expr} = ?`;
+            document.getElementById('game-correct-count').innerText = currentGame.correctCount;
+            
+            let percent = ((currentGame.currentIndex - 1) / currentGame.totalQ) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+
+            let inputEl = document.getElementById('user-answer');
+            inputEl.value = '';
+            document.getElementById('feedback-msg').innerText = '';
+            inputEl.focus();
+        }
+
+        function submitAnswer() {
+            let inputEl = document.getElementById('user-answer');
+            let val = parseInt(inputEl.value.trim());
+            let feedback = document.getElementById('feedback-msg');
+
+            if (isNaN(val)) {
+                feedback.style.color = '#ef4444';
+                feedback.innerText = "⚠️ 请先输入有效的数字答案！";
+                return;
+            }
+
+            if (val === currentGame.currentAns) {
+                feedback.style.color = '#10b981';
+                feedback.innerText = "✅ 太棒啦，答对了！";
+                currentGame.correctCount++;
+            } else {
+                feedback.style.color = '#ef4444';
+                feedback.innerText = `❌ 答错啦，正确答案是 ${currentGame.currentAns}`;
+            }
+
+            document.getElementById('game-correct-count').innerText = currentGame.correctCount;
+            inputEl.disabled = true;
+
+            setTimeout(() => {
+                inputEl.disabled = false;
+                nextQuestion();
+            }, 800);
+        }
+
+        function endGame() {
+            showScreen('screen-result');
+            let total = currentGame.totalQ;
+            let correct = currentGame.correctCount;
+            let accuracy = (correct / total) * 100;
+
+            document.getElementById('res-total').innerText = total;
+            document.getElementById('res-correct').innerText = correct;
+            document.getElementById('res-rate').innerText = accuracy.toFixed(1) + '%';
+
+            let today = new Date().toDateString();
+            let rewardBlock = document.getElementById('res-reward');
+            let noteBlock = document.getElementById('res-note');
+
+            if (accuracy >= 90.0) {
+                document.getElementById('result-emoji').innerText = "🏆";
+                document.getElementById('result-title').innerText = "恭喜闯关成功！";
+                
+                // 检查每日奖励
+                if (userData.lastRewardDate === today) {
+                    rewardBlock.innerText = `+0 🪙 (今日已领)`;
+                    noteBlock.innerText = "提示：今天已经领取过金币奖励啦，明天再来哦！";
+                } else {
+                    let reward = currentGame.rewardCoins;
+                    userData.coins += reward;
+                    userData.lastRewardDate = today;
+                    saveUserData();
+                    rewardBlock.innerText = `+${reward} 🪙`;
+                    noteBlock.innerText = "🎉 成功获得今日通关金币奖励！";
+
+                    // 触发漂亮的五彩纸屑庆祝特效
+                    confetti({
+                        particleCount: 100,
+                        spread: 70,
+                        origin: { y: 0.6 }
+                    });
+                }
+            } else {
+                document.getElementById('result-emoji').innerText = "💪";
+                document.getElementById('result-title').innerText = "再接再厉哦！";
+                rewardBlock.innerText = `+0 🪙`;
+                noteBlock.innerText = "提示：正确率达到 90% 以上才能过关并获得金币奖励哦！";
+            }
+        }
+
+        function buyVoucher() {
+            if (userData.coins >= 100) {
+                userData.coins -= 100;
+                userData.vouchers += 1;
+                saveUserData();
+                alert("🎉 兑换成功！成功获得 1 张 1元人民币兑换券！快去告诉爸爸妈妈吧！");
+            } else {
+                alert("❌ 金币不足 100，快去挑战关卡赚取金币吧！");
+            }
+        }
+    </script>
+</body>
+</html>
