@@ -23,7 +23,6 @@
             color: var(--text-color);
             line-height: 1.6;
         }
-        /* 顶部横幅 */
         header {
             background: linear-gradient(135deg, #2c3e50, #3498db);
             color: white;
@@ -38,13 +37,11 @@
             font-size: 1.1rem;
             opacity: 0.9;
         }
-        /* 主体容器 */
         .container {
             max-width: 1000px;
             margin: -30px auto 40px auto;
             padding: 0 20px;
         }
-        /* 卡片区块 */
         .section-card {
             background: var(--card-bg);
             border-radius: 10px;
@@ -59,7 +56,6 @@
             border-left: 4px solid var(--primary-color);
             padding-left: 10px;
         }
-        /* 项目网格 */
         .project-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -99,7 +95,6 @@
         .btn:hover {
             background: #2980b9;
         }
-        /* 页脚 */
         footer {
             text-align: center;
             padding: 20px;
@@ -118,25 +113,26 @@
     <div class="container">
         <!-- 个人简介 -->
         <div class="section-card">
-        <h2>个人与小组简介</h2>
-            <p>你好！这里是我的个人主页。本次展示整合了我在软件工程课程中完成的前期核心作业，包括前端交互式小游戏以及基于桌面端的软件工程系统。感谢老师与小组成员的共同支持与协作。</p>
+            <h2>个人与小组简介</h2>
+            <p>你好！这里是我的个人主页。本次展示整合了我在软件工程课程中完成的前期核心作业，包括前端交互式算术闯关游戏以及基于桌面端的代码统计分析系统。</p>
         </div>
 
         <!-- 作业展示区 -->
         <div class="section-card">
             <h2>课程作业成果展示</h2>
             <div class="project-grid">
-                <!-- 作业 1 -->
+                <!-- 作业 1：网页游戏（已对应你的真实文件名 Arithmetic_problem.html） -->
                 <div class="project-item">
-                    <h3>🎮 小学生趣味答题网页游戏</h3>
-                    <p>采用 HTML5/CSS3/JavaScript 开发的交互式闯关答题游戏。包含实时倒计时、正误音效反馈、动态计分及智能错题本重练功能。</p>
-                    <a href="#" class="btn" target="_blank">查看在线游戏</a>
+                    <h3>🎮 小学生趣味算术答题网页游戏</h3>
+                    <p>采用 HTML5/CSS3/JavaScript 开发的交互式闯关答题游戏。包含关卡难度选择、实时倒计时、金币奖励与错题重练功能。</p>
+                    <a href="Arithmetic_problem.html" class="btn" target="_blank">体验在线游戏</a>
                 </div>
-                <!-- 作业 2 -->
+
+                <!-- 作业 2：Python 桌面软件 -->
                 <div class="project-item">
                     <h3>📊 代码统计与可视化分析系统</h3>
                     <p>基于 Python 与 PyQt6 开发的桌面端软件。支持多语言递归解析、压缩包自动解压、多维统计表格及现代环形占比图渲染。</p>
-                    <a href="#" class="btn" target="_blank">查看源码与文档</a>
+                    <a href="https://github.com/7qiqia77q567/group-hpempage/blob/main/code_statistic.py" class="btn" target="_blank">查看源码与文档</a>
                 </div>
             </div>
         </div>
